@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Look Through Studio</title>
+<style>
+  :root{
+    --bg:#12151f; --panel:#1a1e2b; --panel2:#212635; --ink:#f0ece2; --muted:#9aa1b8;
+    --accent:#ffc43d; --ok:#5ad48a; --bad:#ff6b6b; --line:#2c3247;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.45 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;
+         padding:12px 20px;background:rgba(18,21,31,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+  header .logo{width:26px;height:26px;border-radius:50%;border:3px solid var(--accent);position:relative;flex:none}
+  header .logo::after{content:"";position:absolute;inset:7px;border-radius:50%;background:var(--accent)}
+  h1{font-size:18px;margin:0;font-weight:650}
+  .spacer{flex:1}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--bad);display:inline-block;margin-right:6px}
+  .dot.ok{background:var(--ok)}
+  button,.btn{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;
+       padding:8px 14px;font-size:14px;cursor:pointer;text-decoration:none;display:inline-block}
+  button:hover,.btn:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#181410;font-weight:650}
+  button.danger:hover{border-color:var(--bad);color:var(--bad)}
+  button:disabled{opacity:.45;cursor:default}
+  main{max-width:1200px;margin:0 auto;padding:20px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+  .card .thumb{aspect-ratio:16/9;background:#000;display:flex;align-items:center;justify-content:center;color:var(--muted);overflow:hidden}
+  .card .thumb img{width:100%;height:100%;object-fit:cover}
+  .card .body{padding:12px 14px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .card .title{font-weight:600;font-size:14.5px;line-height:1.3}
+  .card .meta{color:var(--muted);font-size:12.5px;display:flex;gap:10px;flex-wrap:wrap}
+  .badge{font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid var(--line);color:var(--muted)}
+  .badge.run{color:var(--accent);border-color:var(--accent);animation:pulse 1.2s infinite}
+  .badge.done{color:var(--ok);border-color:var(--ok)}
+  .badge.fail{color:var(--bad);border-color:var(--bad)}
+  .badge.qc-ok{color:var(--ok)} .badge.qc-bad{color:var(--bad)}
+  @keyframes pulse{50%{opacity:.45}}
+  .card .actions{display:flex;gap:8px;margin-top:auto}
+  .card .actions button{flex:1;padding:6px 8px;font-size:13px}
+  .empty{color:var(--muted);text-align:center;padding:60px 0;border:1px dashed var(--line);border-radius:12px}
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:50;display:none;align-items:center;justify-content:center;padding:20px}
+  .overlay.open{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;width:min(920px,100%);
+         max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+  .modal.wide{width:min(1020px,100%)}
+  .modal header2,.modal .mhead{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+  .modal .mhead h2{font-size:16px;margin:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .modal .mbody{padding:16px 18px;overflow:auto}
+  .tabs{display:flex;gap:4px;padding:10px 18px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .tabs button{background:none;border:none;border-bottom:2px solid transparent;border-radius:6px 6px 0 0;padding:8px 12px;color:var(--muted)}
+  .tabs button.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .tabpane{display:none;padding:16px 18px;overflow:auto}
+  .tabpane.active{display:block}
+  video{width:100%;max-height:52vh;background:#000;border-radius:10px}
+  .shorts{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+  .shorts video{max-height:300px}
+  .shorts h4{margin:6px 0 2px;font-size:13px}
+  .shorts p{margin:0;color:var(--muted);font-size:12px}
+  table{border-collapse:collapse;width:100%;font-size:13.5px}
+  th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600}
+  pre{background:#0d0f16;border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;
+      font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word;max-height:46vh}
+  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+  input[type=text],input[type=number],select,textarea{width:100%;background:var(--panel2);border:1px solid var(--line);
+      color:var(--ink);border-radius:8px;padding:8px 10px;font-size:14px}
+  textarea{min-height:90px;font-family:inherit}
+  .row{display:flex;gap:12px;flex-wrap:wrap}.row>div{flex:1;min-width:150px}
+  .checks{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px}
+  .checks label{display:flex;align-items:center;gap:6px;margin:0;color:var(--ink)}
+  .mfoot{display:flex;gap:10px;justify-content:flex-end;padding:12px 18px;border-top:1px solid var(--line)}
+  a{color:var(--accent)}
+  .kv{font-size:13.5px}.kv b{color:var(--muted);font-weight:600;display:inline-block;min-width:130px}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel2);
+         border:1px solid var(--accent);padding:10px 18px;border-radius:10px;z-index:99;display:none}
+</style>
+</head>
+<body>
+<header>
+  <span class="logo"></span><h1>The Look Through Studio</h1>
+  <span id="health"><span class="dot"></span>…</span>
+  <span class="spacer"></span>
+  <button onclick="openQueue()">Batch queue</button>
+  <button class="primary" onclick="openNew()">＋ New video</button>
+</header>
+<main>
+  <div id="jobs" class="grid"></div>
+  <div id="empty" class="empty" style="display:none">No videos yet — press <b>＋ New video</b> (try demo mode, no API keys needed).</div>
+</main>
+
+<!-- job detail -->
+<div class="overlay" id="ovJob" onclick="if(event.target===this)closeJob()">
+  <div class="modal wide">
+    <div class="mhead"><h2 id="jobTitle">job</h2><span id="jobStatus"></span>
+      <button onclick="stopJob(cur)">Stop</button><button class="danger" onclick="delJob(cur)">Delete</button>
+      <button onclick="closeJob()">✕</button></div>
+    <div class="tabs" id="jobTabs">
+      <button data-t="video" class="active" onclick="tab('video')">Video</button>
+      <button data-t="shorts" onclick="tab('shorts')">Shorts</button>
+      <button data-t="caps" onclick="tab('caps')">Captions</button>
+      <button data-t="qc" onclick="tab('qc')">QC</button>
+      <button data-t="meta" onclick="tab('meta')">Metadata</button>
+      <button data-t="files" onclick="tab('files')">Files</button>
+      <button data-t="log" onclick="tab('log')">Log</button>
+    </div>
+    <div class="tabpane active" id="pane-video"></div>
+    <div class="tabpane" id="pane-shorts"></div>
+    <div class="tabpane" id="pane-caps"></div>
+    <div class="tabpane" id="pane-qc"></div>
+    <div class="tabpane" id="pane-meta"></div>
+    <div class="tabpane" id="pane-files"></div>
+    <div class="tabpane" id="pane-log"><pre id="logPre">loading…</pre></div>
+  </div>
+</div>
+
+<!-- new video -->
+<div class="overlay" id="ovNew" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="mhead"><h2>New video</h2><button onclick="closeNew()">✕</button></div>
+    <div class="mbody">
+      <label>Topic (leave empty if using demo mode)</label>
+      <input type="text" id="fTopic" placeholder='e.g. "Why do we fear being alone?"'>
+      <div class="row">
+        <div><label>Channel</label><select id="fChannel"></select></div>
+        <div><label>Minutes</label><input type="number" id="fMinutes" step="0.5" min="0.5" value="3"></div>
+        <div><label>Demo (no API key)</label><select id="fDemo">
+          <option value="">— off —</option><option value="story">story</option><option value="book">book</option></select></div>
+      </div>
+      <div class="checks">
+        <label><input type="checkbox" id="fShorts"> 9:16 main (Shorts)</label>
+        <label><input type="checkbox" id="fNoShorts"> skip shorts pack</label>
+        <label><input type="checkbox" id="fForce"> force re-render</label>
+        <label><input type="checkbox" id="fUpload"> upload to YouTube</label>
+      </div>
+      <div id="newErr" style="color:var(--bad);margin-top:10px;font-size:13px"></div>
+    </div>
+    <div class="mfoot"><button onclick="closeNew()">Cancel</button><button class="primary" onclick="startJob()">Render ▶</button></div>
+  </div>
+</div>
+
+<!-- queue -->
+<div class="overlay" id="ovQueue" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal wide">
+    <div class="mhead"><h2>Batch queue</h2>
+      <button onclick="queueRun()">Run queue ▶</button><button onclick="closeQueue()">✕</button></div>
+    <div class="mbody" style="max-height:60vh">
+      <div class="row">
+        <div><label>Theme (or paste topics below, one per line)</label><input type="text" id="qTheme" placeholder="psychology of habits"></div>
+        <div><label>Days</label><input type="number" id="qDays" value="7" min="1" max="30"></div>
+        <div><label>Channel</label><select id="qChannel"></select></div>
+        <div><label>Format</label><select id="qFormat"><option>long</option><option>shorts</option><option>mix</option></select></div>
+        <div><label>Demo</label><select id="qDemo"><option value="">off</option><option value="1">on</option></select></div>
+      </div>
+      <label>Own topics (one per line, optional "topic | angle")</label>
+      <textarea id="qTopics" placeholder="the bystander effect&#10;why habits stick | personal story"></textarea>
+      <div style="margin-top:10px"><button onclick="queuePlan()">Plan week → queue.json</button>
+      <span id="qMsg" style="margin-left:10px;color:var(--muted);font-size:13px"></span></div>
+      <div id="queueTable" style="margin-top:14px"></div>
+    </div>
+    <div class="mhead" style="border-top:1px solid var(--line);border-bottom:none"><span style="color:var(--muted);font-size:12.5px">batch log</span></div>
+    <div style="padding:0 18px 14px"><pre id="batchLog" style="max-height:160px">—</pre></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+let cur = null, cfg = null, pollTimer = null;
+
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.style.display='block';
+  clearTimeout(t._h); t._h=setTimeout(()=>t.style.display='none', 2600); }
+
+async function api(path, opts){
+  const r = await fetch(path, opts);
+  const txt = await r.text();
+  let data; try{ data = JSON.parse(txt); }catch(e){ data = {error: txt}; }
+  if(!r.ok) throw Object.assign(new Error(data.error||r.statusText), {status:r.status});
+  return data;
+}
+const esc = s => String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const badge = s => `<span class="badge ${s==='done'?'done':s==='failed'?'fail':s==='running'||s==='queued'?'run':''}">${esc(s)}</span>`;
+const fmtDur = s => s==null?'—':(s<60? s.toFixed(1)+'s' : Math.floor(s/60)+'m'+(s%60).toFixed(0).padStart(2,'0')+'s');
+const fmtSize = b => b>1e6? (b/1e6).toFixed(1)+' MB' : b>1e3? (b/1e3).toFixed(0)+' KB' : b+' B';
+
+async function refresh(){
+  try{
+    const h = await api('/api/health');
+    $('health').innerHTML = `<span class="dot ok"></span>engine v${esc(h.engine)}${h.ffmpeg?' · ffmpeg ✓':' · ffmpeg ✗'}`;
+  }catch(e){ $('health').innerHTML = `<span class="dot"></span>offline`; }
+  try{
+    const {jobs} = await api('/api/jobs');
+    renderJobs(jobs);
+  }catch(e){}
+  if(cur) refreshDetail(cur, true);
+  const q = await api('/api/queue').catch(()=>null);
+  if(q && $('ovQueue').classList.contains('open')) renderQueue(q);
+}
+
+function renderJobs(jobs){
+  $('empty').style.display = jobs.length? 'none':'block';
+  $('jobs').innerHTML = jobs.map(j=>`
+    <div class="card">
+      <div class="thumb">${j.thumbnail?`<img src="${j.thumbnail}" loading="lazy">`:'🎬'}</div>
+      <div class="body">
+        <div class="title">${esc(j.title)}</div>
+        <div class="meta">
+          ${badge(j.status)}
+          ${j.qc_pass===true?'<span class="badge qc-ok">QC ✓</span>':j.qc_pass===false?'<span class="badge qc-bad">QC ✗</span>':''}
+          <span>${j.resolution? j.resolution[0]+'×'+j.resolution[1] : ''}</span>
+          <span>${fmtDur(j.duration_sec)}</span>
+          <span>${j.n_shorts||0} shorts</span>
+        </div>
+        <div class="actions"><button onclick="openJob('${j.name}')">Open</button></div>
+      </div>
+    </div>`).join('');
+}
+
+/* ---------- job detail ---------- */
+async function openJob(name){
+  cur = name;
+  $('ovJob').classList.add('open');
+  tab('video');
+  await refreshDetail(name);
+}
+function closeJob(){ $('ovJob').classList.remove('open'); cur=null; }
+function tab(t){
+  document.querySelectorAll('#jobTabs button').forEach(b=>b.classList.toggle('active', b.dataset.t===t));
+  document.querySelectorAll('.tabpane').forEach(p=>p.classList.toggle('active', p.id==='pane-'+t));
+  if(t==='log') loadLog();
+}
+async function refreshDetail(name, soft){
+  const d = await api('/api/jobs/'+encodeURIComponent(name)).catch(()=>null);
+  if(!d) return;
+  $('jobTitle').textContent = (d.metadata.title||d.name)+'  ·  '+d.name;
+  $('jobStatus').innerHTML = badge(d.status);
+  const m = d.metadata||{};
+  $('pane-video').innerHTML = d.files.some(f=>f.path==='video.mp4')
+    ? `<video controls preload="metadata" src="/files/${encodeURIComponent(name)}/video.mp4"></video>
+       <p class="kv" style="margin-top:10px"><b>duration</b>${fmtDur(m.duration_sec)} &nbsp; <b>resolution</b>${(m.resolution||[]).join('×')} @ ${(cfg?.fps)||24}fps<br>
+       <b>download</b> <a href="/files/${encodeURIComponent(name)}/video.mp4?download=1">video.mp4</a> ·
+       <a href="/files/${encodeURIComponent(name)}/captions.srt?download=1">captions.srt</a> ·
+       <a href="/files/${encodeURIComponent(name)}/metadata.json?download=1">metadata.json</a> ·
+       <a href="/files/${encodeURIComponent(name)}/manifest.json?download=1">manifest.json</a></p>`
+    : `<p style="color:var(--muted)">No video.mp4 yet — check the Log tab.</p>`;
+  const shorts = (m.shorts&&m.shorts.length? m.shorts : d.files.filter(f=>/^shorts\/short_\d+\.mp4$/.test(f.path)).map(f=>({file:f.path,title:f.path})));
+  $('pane-shorts').innerHTML = shorts.length
+    ? `<div class="shorts">${shorts.map((s,i)=>`
+        <div><video controls preload="none" src="/files/${encodeURIComponent(name)}/${encodeURIComponent(s.file)}"></video>
+        <h4>${esc(s.title||('Short '+(i+1)))}</h4>
+        <p>${esc((s.description||'').slice(0,90))}</p>
+        <p><a href="/files/${encodeURIComponent(name)}/${encodeURIComponent(s.file)}?download=1">download</a></p></div>`).join('')}</div>`
+    : `<p style="color:var(--muted)">No shorts pack (skipped with --no-shorts, or not rendered yet).</p>`;
+  const cap = d.files.find(f=>f.path==='captions.srt');
+  $('pane-caps').innerHTML = cap
+    ? `<p><a href="${cap.url}">captions.srt</a> · <a href="${cap.url.replace('.srt','.vtt')}">captions.vtt</a></p>
+       <pre>${esc(cap? '' : '')}</pre>` : '<p style="color:var(--muted)">No captions yet.</p>';
+  if(cap) fetch(cap.url).then(r=>r.text()).then(t=>{ $('pane-caps').querySelector('pre').textContent=t; });
+  $('pane-qc').innerHTML = d.qc
+    ? `<pre>${esc(JSON.stringify(d.qc,null,1))}</pre>
+       ${d.quality? '<h4 style="margin:14px 0 6px">per-scene quality.json</h4><pre>'+esc(JSON.stringify(d.quality,null,1))+'</pre>':''}`
+    : '<p style="color:var(--muted)">No qc_report.json yet.</p>';
+  $('pane-meta').innerHTML = `<div class="kv">
+      <div><b>title</b>${esc(m.title)}</div>
+      <div><b>description</b>${esc(m.description)}</div>
+      <div><b>tags</b>${esc((m.tags||[]).join(', '))}</div>
+      <div><b>claims to verify</b>${esc((m.claims_to_verify||[]).join(' · '))}</div>
+      <div><b>demo mode</b>${m.demo_mode? 'yes':'no'}</div>
+      <div><b>channel</b>${esc(m.channel)}</div>
+      <div><b>shorts limitation</b>${esc(m.shorts_limitation||'—')}</div>
+      <p><a href="/files/${encodeURIComponent(name)}/script.json?download=1">script.json</a> ·
+         <a href="/files/${encodeURIComponent(name)}/edit_decisions.json?download=1">edit_decisions.json</a> ·
+         <a href="/files/${encodeURIComponent(name)}/quality.json?download=1">quality.json</a></p></div>`;
+  $('pane-files').innerHTML = `<table><tr><th>file</th><th>size</th><th></th></tr>${d.files.map(f=>`
+    <tr><td>${esc(f.path)}</td><td>${fmtSize(f.bytes)}</td>
+    <td><a href="${f.url}">view</a> · <a href="${f.url}?download=1">download</a></td></tr>`).join('')}</table>`;
+  if($('pane-log').classList.contains('active')) loadLog();
+}
+async function loadLog(){
+  try{ $('logPre').textContent = await (await fetch('/api/jobs/'+encodeURIComponent(cur)+'/log?tail=20000')).text(); }
+  catch(e){ $('logPre').textContent = 'no log yet'; }
+  $('logPre').scrollTop = 1e9;
+}
+async function stopJob(name){
+  if(!name) return;
+  try{ await api('/api/jobs/'+encodeURIComponent(name)+'/stop',{method:'POST'}); toast('stop requested'); }
+  catch(e){ toast(e.message); }
+  refresh();
+}
+async function delJob(name){
+  if(!name || !confirm('Delete '+name+' and all its files?')) return;
+  try{ await api('/api/jobs/'+encodeURIComponent(name),{method:'DELETE'}); toast('deleted'); closeJob(); refresh(); }
+  catch(e){ toast(e.message); }
+}
+
+/* ---------- new video ---------- */
+function openNew(){ $('newErr').textContent=''; $('ovNew').classList.add('open'); }
+function closeNew(){ $('ovNew').classList.remove('open'); }
+async function startJob(){
+  $('newErr').textContent='';
+  const body = {
+    topic: $('fTopic').value.trim() || null,
+    demo: $('fDemo').value || null,
+    channel: $('fChannel').value,
+    minutes: parseFloat($('fMinutes').value)||null,
+    shorts: $('fShorts').checked, no_shorts: $('fNoShorts').checked,
+    force: $('fForce').checked, upload: $('fUpload').checked,
+  };
+  try{
+    const r = await api('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    toast('queued: '+r.name); closeNew(); refresh();
+  }catch(e){ $('newErr').textContent = e.message; }
+}
+
+/* ---------- queue ---------- */
+function openQueue(){ $('ovQueue').classList.add('open'); api('/api/queue').then(renderQueue).catch(()=>{}); }
+function closeQueue(){ $('ovQueue').classList.remove('open'); }
+function renderQueue(q){
+  const ic = {pending:'·',scripted:'S',rendered:'R',uploaded:'✓',failed:'✗',running:'…'};
+  $('queueTable').innerHTML = q.items.length
+    ? `<table><tr><th></th><th>#</th><th>publish</th><th>fmt</th><th>topic</th><th>status</th></tr>${q.items.map(i=>`
+       <tr><td>${ic[i.status]||'?'}</td><td>${i.id}</td><td>${esc((i.publish_at||'').slice(0,16).replace('T',' '))}</td>
+       <td>${i.shorts?'short':'long'}</td><td>${esc(i.topic)}${i.error?' <span style="color:var(--bad)">['+esc(i.error.slice(0,60))+']</span>':''}</td>
+       <td>${esc(i.status)}</td></tr>`).join('')}</table>
+       <p style="color:var(--muted);font-size:12.5px">batch run: ${esc(q.batch.status)}</p>`
+    : '<p style="color:var(--muted)">Queue is empty — plan a week above.</p>';
+  fetch('/api/batch-log?tail=3000').then(r=>r.text()).then(t=>{ $('batchLog').textContent=t||'—'; });
+}
+async function queuePlan(){
+  $('qMsg').textContent='planning…';
+  try{
+    const r = await api('/api/queue/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      theme:$('qTheme').value.trim()||null, topics:$('qTopics').value.split('\n').map(s=>s.trim()).filter(Boolean),
+      days:parseInt($('qDays').value)||7, channel:$('qChannel').value, format:$('qFormat').value,
+      minutes:3, demo:$('qDemo').value==='1', replace:false })});
+    $('qMsg').textContent = 'queued '+r.queued+' videos';
+    api('/api/queue').then(renderQueue);
+  }catch(e){ $('qMsg').textContent = e.message; $('qMsg').style.color='var(--bad)'; }
+}
+async function queueRun(){
+  try{ await api('/api/queue/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({demo:$('qDemo').value==='1'})});
+    toast('batch run started'); api('/api/queue').then(renderQueue); }
+  catch(e){ toast(e.message); }
+}
+
+/* ---------- boot ---------- */
+(async function(){
+  cfg = await api('/api/config');
+  for(const c of Object.keys(cfg.channels)){
+    $('fChannel').insertAdjacentHTML('beforeend',`<option>${c}</option>`);
+    $('qChannel').insertAdjacentHTML('beforeend',`<option>${c}</option>`);
+  }
+  refresh();
+  setInterval(refresh, 2500);
+})();
+</script>
+</body>
+</html>

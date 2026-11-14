@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Studio" parent="android:Theme.Material.NoActionBar">
+        <item name="android:colorPrimary">@color/studio_panel</item>
+        <item name="android:colorPrimaryDark">@color/studio_bg</item>
+        <item name="android:colorAccent">@color/studio_accent</item>
+        <item name="android:windowBackground">@color/studio_bg</item>
+        <item name="android:textColor">@color/studio_ink</item>
+        <item name="android:statusBarColor">@color/studio_bg</item>
+        <item name="android:editTextColor">@color/studio_ink</item>
+        <item name="android:textColorHint">@color/studio_muted</item>
+    </style>
+</resources>

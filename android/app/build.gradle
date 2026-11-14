@@ -1,0 +1,60 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.lookthrough.studio'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'com.lookthrough.studio'
+        minSdk 24
+        targetSdk 36
+        versionCode 1
+        versionName '1.0'
+    }
+
+    // The dev keystore (android/lookthrough.keystore) is intentionally NOT committed to git.
+    // Locally it signs as-is; in CI set the ANDROID_KEYSTORE_B64 secret (base64 of the
+    // keystore file) plus ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_PASSWORD to sign releases.
+    // If no keystore is present, the release APK is built unsigned (CI smoke-test only).
+    def keystoreFile = file('../lookthrough.keystore')
+    def hasKeystore = keystoreFile.exists()
+
+    signingConfigs {
+        release {
+            if (hasKeystore) {
+                storeFile keystoreFile
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD') ?: 'lookthrough'
+                keyAlias System.getenv('ANDROID_KEY_ALIAS') ?: 'studio'
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD') ?: 'lookthrough'
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (hasKeystore) {
+                signingConfig signingConfigs.release
+            }
+        }
+        debug {
+            applicationIdSuffix '.debug'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+    lint {
+        // lint-gradle isn't in the offline maven cache; skip vital lint on release builds
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}

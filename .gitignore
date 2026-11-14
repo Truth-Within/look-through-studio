@@ -1,0 +1,41 @@
+# --- build artifacts ---
+build/
+dist/
+downloads/
+output/
+*.apk
+*.aab
+*.exe
+*.appimage
+
+# --- Android / Gradle ---
+android/build/
+android/app/build/
+android/.gradle/
+.gradle/
+*.iml
+.idea/
+local.properties
+android/lookthrough.keystore
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# --- secrets / local config ---
+.env
+.env.local
+client_secret.json
+token.json
+credentials.json
+
+# --- user files ---
+attachments/
+
+# --- misc ---
+*.log
+.DS_Store
+Thumbs.db

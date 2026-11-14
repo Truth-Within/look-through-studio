@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=The Look Through Studio
+Comment=Stickman video studio — web dashboard + batch queue
+Exec=lookthrough-studio
+Icon=lookthrough-studio
+Terminal=false
+Categories=AudioVideo;Video;
+Keywords=video;stickman;studio;youtube;shorts;
