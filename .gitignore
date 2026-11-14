@@ -1,9 +1,9 @@
 # --- build artifacts ---
 build/
 dist/
-downloads/
 output/
 *.apk
+!downloads/*.apk
 *.aab
 *.exe
 *.appimage

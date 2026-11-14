@@ -167,7 +167,7 @@ python3 tests/acceptance.py output/demo-story   # QA gates F/G + exports on a fi
 | `pipeline/upload.py` | Resumable YouTube upload with optional `publishAt` |
 | `webapp.py` + `web/` | Web dashboard + JSON API (jobs, queue, logs, Range file serving, `/downloads/` app builds) |
 | `start_web.sh` / `START_WEB.bat` | One-command start of the web UI (Linux/macOS / Windows) |
-| `downloads/` | Prebuilt packages: Linux ARM64 binary, signed APK, Windows zip + `SHA256SUMS.txt`; also served at `/downloads/` |
+| `downloads/` | Prebuilt packages, tracked in this repo and also served at `/downloads/`: Linux ARM64 binary, signed APK, Windows zip + `SHA256SUMS.txt` |
 | `desktop/launcher.py` | Desktop launcher (entry point for the PyInstaller builds) |
 | `packaging/` | PyInstaller specs, `build_linux.sh` / `build_windows.bat`, `.desktop` entry, icons, `make_icons.py` |
 | `android/` | Kotlin companion APK (WebView client for the web UI + server settings/test screen) |
